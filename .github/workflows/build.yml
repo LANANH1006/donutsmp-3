@@ -28,13 +28,19 @@ jobs:
         with:
           gradle-version: 8.12
 
-      # Tu tim thu muc co build.gradle (o goc repo hoac trong thu muc donutlike/)
+      # Tu tim build.gradle o bat ky thu muc nao trong repo
       - name: Find project directory
         id: proj
         run: |
-          if [ -f build.gradle ]; then echo "dir=." >> "$GITHUB_OUTPUT";
-          elif [ -f donutlike/build.gradle ]; then echo "dir=donutlike" >> "$GITHUB_OUTPUT";
-          else echo "Khong tim thay build.gradle" && exit 1; fi
+          F=$(find . -name build.gradle -not -path './.git/*' | head -1)
+          if [ -z "$F" ]; then
+            echo "Khong tim thay build.gradle. Cac file trong repo:"
+            find . -not -path './.git/*' -type f | head -50
+            exit 1
+          fi
+          D=$(dirname "$F")
+          echo "Tim thay project o: $D"
+          echo "dir=$D" >> "$GITHUB_OUTPUT"
 
       - name: Build
         working-directory: ${{ steps.proj.outputs.dir }}
